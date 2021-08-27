@@ -1,8 +1,12 @@
+
+
+
 {% set dbt_relation=adapter.get_relation(
       database=target.database,
       schema="avo_analytics_playground",
-      identifier="account_created"
+      identifier="branch_created"
 ) -%}
+
 
 
 {{
