@@ -29,10 +29,12 @@
 {% endfor %}
 
 
-select TOP 10 *
-INTO #TempTable
-FROM {{ relation }}
-
-EXEC tempdb.dbo.sp_help N'#TempTable';
+select 
+from 
+    {{ relation }}  
+WHERE 
+    DATE(received_at) >= {{ dbt_date.n_days_ago(20, tz='UTC') }}
+GROUP BY
+    {{ check_cols_csv }}
 
 {% endmacro %}
