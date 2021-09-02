@@ -214,7 +214,7 @@ Execute the following commands in your dev environment
 > Here we list macro's that we plan on building. If you want to contribute, this list of macros is up for grabs!
 
 ## audit_volume
-This macro is intended to compare data from two time periods to each other, and compare for each event relative to number of events received to identify if any event or event signature significantly drops or rises in volume.
+This macro is intended to compare data from two time periods to each other and find significant drops or rises in event or event signature volumes.
 
 To execute, run the following commands in your dbt dev environment:"
 ```
