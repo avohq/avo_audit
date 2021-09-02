@@ -52,7 +52,39 @@ Run `dbt deps` in the root of your dbt project to install the package.
 # Macros
 
 ### Disclaimer
-> This project is still work in progress. These macros have not been fully implemented yet, however some of the work has been started and we will be doing our best to get this up and running as soon as possible. Reach out if you'd like to help out!
+> This project is still work in progress. These macros have not been fully implemented yet, however some of the work has been started and we will be doing our best to get this up and running as soon as possible. Reach out if you want to contribute to the project or join our alpha group to be one of the first to try out what we build and provide feedback!"
+
+
+## audit
+
+Audit runs on your raw events table and generates a table of issue types like the ones listed in [Issue Types](#Issue-types).
+
+This is a macro which joins together 3 internal macros to fully automate the audit process. It runs the following macros in the order listed.
+
+    1. `avo_audit.parse_signature`
+    2. `avo_audit.compare_events`
+    3. `avo_audit.report_issues`
+
+This macro is only intended join together these 3 steps into 1 dbt model.
+
+To execute, run the following command in your environment:
+```
+{# in dbt Develop #}
+
+{% set raw_event_relation=adapter.get_relation(
+      database=target.database,
+      schema="raw_event_schema",
+      identifier="raw_event_table"
+) -%}
+
+{{ avo_audit.audit(
+    relation=raw_event_relation,
+    date_partition=”sent_at”,
+    lookback_hours=24,
+) }}
+```
+[See Report Issues for documentation on the result model](#report_issues)
+
 
 ## parse_signature
 
@@ -116,6 +148,7 @@ The results will look like this:
 | App Opened | [user_id, user_name, device] | [big int, string, null]        | 1             | 4                 | 3                        |
 
 
+To execute, run the following commands in your dbt dev environment:"
 ```
 {# in dbt Develop #}
 
@@ -125,7 +158,7 @@ The results will look like this:
       identifier="raw_event_signature_table"
 ) -%}
 
-{{ avo_audit.parse_signature(
+{{ avo_audit.compare_events(
     relation=raw_event_signature_relation
 ) }}
 ```
@@ -154,8 +187,24 @@ This macro takes the result from [compare_events](#compare_events), and generate
 | App Opened | [user_id, user_name, device] | [string, string, null]     | 1             | 4                 | 3                        | 4              | Property "device" is not sent with 25% of the App Opened event.                       |
 
 
+Execute the following commands in your dev environment
+```
+{# in dbt Develop #}
+
+{% set compare_event_relation=adapter.get_relation(
+      database=target.database,
+      schema="avo_audit_schema",
+      identifier="compare_events_table"
+) -%}
+
+{{ avo_audit.report_issues(
+    relation=compare_events_relation,
+    report_missing_property=true
+) }}
+```
+
 **Arguments:**
-* **compare_event_relation:** The database table containing your raw events which you want to compare.
+* **relation:** The database table containing your raw events which you want to compare.
 * **report_missing_property:** Whether the report should include property missing, defaults to true
 
 
@@ -167,8 +216,7 @@ This macro takes the result from [compare_events](#compare_events), and generate
 ## audit_volume
 This macro is intended to compare data from two time periods to each other, and compare for each event relative to number of events received to identify if any event or event signature significantly drops or rises in volume.
 
-Code to use the macro:
-
+To execute, run the following commands in your dbt dev environment:"
 ```
 {% set raw_event_relation=adapter.get_relation(
       database=target.database,
