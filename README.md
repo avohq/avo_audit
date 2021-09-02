@@ -79,7 +79,7 @@ Instead of using the signature from the column definitions, it is deriving the s
 | App Opened | [user_id, user_name, device] | [int, string, null]        |
 
 
-It is best to test this in your develop environment first while you get set up.
+We recommend to test this in your development environment first while you get set up.
 ```
 {# in dbt Develop #}
 
