@@ -33,7 +33,7 @@ We recommend implementing at least the main 3 macros, and chain them together. T
 
 Steps:
 1. Convert raw events into it’s signature type with [**parse_signature**](#parse_signature)
-2. Group events by identical signatures and compare events with different signatures Per event with [**compare_events**](#compare_events)
+2. Group events by identical signatures and compare events with different signatures per event name with [**compare_events**](#compare_events)
 3. Generate issues table with [**report_issues**](#report_issues)
 
 
