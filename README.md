@@ -8,10 +8,10 @@ This allows you to find discrepancies between events and properties that should 
 Issues available in the alpha version:  
 
 **Property sometimes missing** – detects absence of event properties across tracking calls.  
->`Property onboarding status is not sent with 30% of the App Opened event.`  
+>_Property onboarding status is not sent with 30% of the App Opened event._ 
 
 **Property type mismatch** – detects inconsistent event property types across tracking calls.  
->`Inconsistent type of property onboarding status on event App Opened: int (84%), string (16%).`
+>_Inconsistent type of property onboarding status on event App Opened: int (84%), string (16%)._
 
 ### Issue types on the roadmap (not prioritized list):
 * Event missing on some platforms
