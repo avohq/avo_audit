@@ -5,7 +5,7 @@ This allows you to find discrepancies between events and properties that should 
 
 ## Issue types
 
-Issues available in the alpha version:  
+### Issues available in the alpha version:  
 
 **Property sometimes missing** – detects absence of event properties across tracking calls.  
 >_Property onboarding status is not sent with 30% of the App Opened event._ 
