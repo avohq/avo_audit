@@ -107,7 +107,7 @@ We recommend to test this in your development environment first while you get se
 
 This macro will run on the results of parse_signature.
 
-It will execute a Sql that will go through each event_name group, and compare it together with all the other events to find issues where a field is sometimes NULL, Int instead of string etc.
+It will execute a SQL that will go through each event_name group, and compare it together with all the other events to identify the issues documented above.
 
 The end result will be a table that identifies discrepancies between the events.
 
