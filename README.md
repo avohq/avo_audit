@@ -153,8 +153,8 @@ This macro takes the result from compare_events, and generates issues based on n
 
 # Upcoming Macros
 
-### Disclaimer!
-> Here we list macro's that we want to work on in the future and have been mapped out how they should work. If you want to contribute, this list of macros is up for grabs!
+### Disclaimer
+> Here we list macro's that we plan on building. If you want to contribute, this list of macros is up for grabs!
 
 ## audit_volume
 This macro is intended to compare 2 days of data to each other, and compare for each event relative to number of events received to identify if any event or event signature significantly drops or rises in volume.
