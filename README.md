@@ -51,6 +51,9 @@ Run `dbt deps` in the root of your dbt project to install the package.
 
 # Macros
 
+### Disclaimer!
+> We have not yet implemented these macros, however some of the work has been started and we will be doing our best to get this up and running as soon as possible!
+
 ## parse_signature
 
 This macro generates a SQL that transforms each raw event into it’s signature.  
@@ -149,6 +152,9 @@ This macro takes the result from compare_events, and generates issues based on n
 
 
 # Upcoming Macros
+
+### Disclaimer!
+> Here we list macro's that we want to work on in the future and have been mapped out how they should work. If you want to contribute, this list of macros is up for grabs!
 
 ## audit_volume
 This macro is intended to compare 2 days of data to each other, and compare for each event relative to number of events received to identify if any event or event signature significantly drops or rises in volume.
