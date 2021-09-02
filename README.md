@@ -52,7 +52,7 @@ Run `dbt deps` in the root of your dbt project to install the package.
 # Macros
 
 ### Disclaimer!
-> We have not yet implemented these macros, however some of the work has been started and we will be doing our best to get this up and running as soon as possible!
+> This project is still work in progress. These macros have not been fully implemented yet, however some of the work has been started and we will be doing our best to get this up and running as soon as possible. Reach out if you'd like to help out!
 
 ## parse_signature
 
