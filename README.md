@@ -32,9 +32,9 @@ Issues available in the alpha version:
 We recommend implementing at least the main 3 macros, and chain them together. That way you will generate a SQL table listing the issues found in your project, ordered by the priority listed above.
 
 Steps:
-1. Convert raw events into it’s signature type with parse_signature
-2. Group events by identical signatures and compare events with different signatures Per event with compare_events
-3. Generate issues table by using the report_issues macro.
+1. Convert raw events into it’s signature type with **parse_signature**
+2. Group events by identical signatures and compare events with different signatures Per event with **compare_events**
+3. Generate issues table by using the **report_issues** macro.
 
 
 ## Installing the package
@@ -51,7 +51,7 @@ Run `dbt deps` in the root of your dbt project to install the package.
 
 # Macros
 
-### parse_signature
+## parse_signature
 
 This macro generates a SQL that transforms each raw event into it’s signature.  
 Instead of using the signature from the column definitions, it is deriving the signature from the value. This can be used to compare events with identical names together to understand if and how they vary from each other.
@@ -100,7 +100,7 @@ It is best to test this in your develop environment first while you get set up.
 
 
 
-### compare_events
+## compare_events
 
 This macro will run on the results of parse_signature.
 
@@ -129,7 +129,7 @@ The end result will be a table that identifies discrepancies between the events.
 ) }}
 ```
 
-### report_issues
+## report_issues
 
 This macro takes the result from compare_events, and generates issues based on number of event variants, which kind of variant difference it is etc. The issues are priorities in the following order.
 
@@ -148,9 +148,9 @@ This macro takes the result from compare_events, and generates issues based on n
 * **report_missing_property:** Whether the report should include property missing, defaults to true
 
 
-## Upcoming Macros
+# Upcoming Macros
 
-### audit_volume
+## audit_volume
 This macro is intended to compare 2 days of data to each other, and compare for each event relative to number of events received to identify if any event or event signature significantly drops or rises in volume.
 
 Code to use the macro:
@@ -175,7 +175,7 @@ Code to use the macro:
  
 The issues table can be large and overwhelming, with multiple issues each with different priority. We will build the **avo_audit_cli** python library to better visualize the issues.
 
-**In avo_audit_cli you can either**
+In **avo_audit_cli** you can either
 * Review and filter issues visually with the `avo_audit_cli serve` serve command which generates a local html file.
 * Enable the inspector dashboard and Tracking plan implementation status in your Avo workspace with `avo_audit_cli post --token` which posts the results to the avo workspace
 
