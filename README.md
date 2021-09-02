@@ -29,7 +29,7 @@ This allows you to find discrepancies between events and properties that should 
 
 
 ## How do I get the most out of this package? 
-We recommend implementing at least the main 3 macros, and chain them together. That way you will generate a SQL table listing the issues found in your project, ordered by the priority listed above.
+We recommend implementing at least the main 3 macros, and chain them together. That way you will generate a SQL table listing the issues found in your project.
 
 Steps:
 1. Convert raw events into it’s signature type with **parse_signature**
