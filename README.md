@@ -32,9 +32,9 @@ This allows you to find discrepancies between events and properties that should 
 We recommend implementing at least the main 3 macros, and chain them together. That way you will generate a SQL table listing the issues found in your project.
 
 Steps:
-1. Convert raw events into it’s signature type with **parse_signature**
-2. Group events by identical signatures and compare events with different signatures Per event with **compare_events**
-3. Generate issues table by using the **report_issues** macro.
+1. Convert raw events into it’s signature type with [**parse_signature**](#parse_signature)
+2. Group events by identical signatures and compare events with different signatures Per event with [**compare_events**](#compare_events)
+3. Generate issues table with [**report_issues**](#report_issues)
 
 
 ## Installing the package
@@ -76,7 +76,7 @@ Instead of using the signature from the column definitions, it is deriving the s
 | App Opened | [user_id, user_name, device] | [string, string, string]   |
 | App Opened | [user_id, user_name, device] | [string, string, string]   |
 | App Opened | [user_id, user_name, device] | [string, string, null]     |
-| App Opened | [user_id, user_name, device] | [int, string, null]        |
+| App Opened | [user_id, user_name, device] | [big int, string, null]        |
 
 
 We recommend to test this in your development environment first while you get set up.
@@ -105,17 +105,15 @@ We recommend to test this in your development environment first while you get se
 
 ## compare_events
 
-This macro will run on the results of parse_signature.
+This macro will run on the [parse_signature](#parse_signature) result table and group together the events based on event_name, property_name_mapping and property_signature_mapping to count how many times the event varies and what is the most common variation being sent.
 
-It will execute a SQL that will go through each event_name group, and compare it together with all the other events to identify the issues documented above.
-
-The end result will be a table that identifies discrepancies between the events.
+The results will look like this:
 
 | event_name | property_name_mapping        | property_signature_mapping | variant_count | total_event_count | number_of_event_variants |
 |------------|------------------------------|----------------------------|---------------|-------------------|--------------------------|
 | App Opened | [user_id, user_name, device] | [string, string, string]   | 2             | 4                 | 3                        |
 | App Opened | [user_id, user_name, device] | [string, string, null]     | 1             | 4                 | 3                        |
-| App Opened | [user_id, user_name, device] | [int, string, null]        | 1             | 4                 | 3                        |
+| App Opened | [user_id, user_name, device] | [big int, string, null]        | 1             | 4                 | 3                        |
 
 
 ```
@@ -134,15 +132,25 @@ The end result will be a table that identifies discrepancies between the events.
 
 ## report_issues
 
-This macro takes the result from compare_events, and generates issues based on number of event variants, which kind of variant difference it is etc. The issues are priorities in the following order.
+This macro takes the result from [compare_events](#compare_events), and generates issues based on number of event variants, which kind of variant difference it is etc. The issues are priorities in the following order.
 
 * **Type difference** - Inconsistent type of property onboarding status on event App Opened: int (84%), string (16%).
-* **Wrong casing** - property name is not following the general casing of the project.
+* **Wrong property name casing** - property name is not following the general casing of the project.
 * **Property Sometimes missing** -  Property onboarding status is not sent with 30% of the App Opened event.
+* **Event missing on some platforms** - Event "App Opened" has never been seen on platform "Web"
+* **Property missing on some platforms** - Property "Device" on Event "App Opened" missing on Platform "Web"
+* **Event volume change significant between versions** - Event "App Opened" has dropped (Down 31%) to "10123" on version 1.2.3, from 14834 on version "1.2.2" 
+* **Event volume difference significant between platforms** - Event "App Open" is being sent 3374(33%) on Android but 6748 (67%) on IOS
+* **Incosistent Event name casing** - Event Name "App Opened" is not following the general casing of the project.
+* **Global property type mismatch** - Property "Device" is sent as string on "App Opened Event" but as int on "Signed Up" event.
+* **Similar event names** - Event name "App Opened" is similar to event name "app_opened"
+* **Similar property names within event** - Property name User Id is similiar to property name user_id
+* **Global similar property names** - Property name User Id is similiar to property name user_id
+* **Missing property based on property group pattern** - Property "Device" is missing on Event "App Closed", grouped with "user_id","user_name" properties on event "App Opened"
 
 | event_name | property_name_mapping        | property_signature_mapping | variant_count | total_event_count | number_of_event_variants | issue_priority | issue                                                                                 |
 |------------|------------------------------|----------------------------|---------------|-------------------|--------------------------|----------------|---------------------------------------------------------------------------------------|
-| App Opened | [user_id, user_name, device] | [int, string, null]        | 1             | 4                 | 3                        | 1              | Inconsistent type of property "user_id" on event App Opened: int (25%), string (75%). |
+| App Opened | [user_id, user_name, device] | [big int, string, null]        | 1             | 4                 | 3                        | 1              | Inconsistent type of property "user_id" on event App Opened: big int (25%), string (75%). |
 | App Opened | [user_id, user_name, device] | [string, string, null]     | 1             | 4                 | 3                        | 4              | Property "device" is not sent with 25% of the App Opened event.                       |
 
 
