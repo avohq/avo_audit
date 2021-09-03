@@ -29,13 +29,7 @@ This allows you to find discrepancies between events and properties that should 
 
 
 ## How do I get the most out of this package? 
-We recommend implementing at least the main 3 macros, and chain them together. That way you will generate a SQL table listing the issues found in your project.
-
-Steps:
-1. Convert raw events into it’s signature type with [**parse_signature**](#parse_signature)
-2. Group events by identical signatures and compare events with different signatures per event name with [**compare_events**](#compare_events)
-3. Generate issues table with [**report_issues**](#report_issues)
-
+We recommend using the [audit](#audit) macro. That way you will generate a SQL table listing the issues found in your project.
 
 ## Installing the package
 Include the following in your `packages.yml` file in your dbt project:
