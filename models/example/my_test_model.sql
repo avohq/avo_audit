@@ -10,5 +10,5 @@
 
 
 {{
-    parse_relation(dbt_relation)
+    parse_relation(dbt_relation, 10)
 }}

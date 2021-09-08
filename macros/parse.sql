@@ -1,15 +1,3 @@
-{% macro pop_columns_contains(columns, contains) %}
-{% set popped_columns=[] %}
-
-{% for column in columns %}
-    {% if contains | lower not in column.name | lower %}
-        {% do popped_columns.append(column) %}
-    {% endif %}
-{% endfor %}
-
-{{ return(popped_columns) }}
-{% endmacro %} 
-
 {% macro is_date(item) %}
 {% set t = modules.datetime.datetime.now() %}
     --  Find better way to figure out if its a date. but this works for now
@@ -31,14 +19,26 @@
 {% endmacro %}
 
 
+{% macro is_event_info(index, column_names) %}
+    
+    {% set column = column_names[index] %}
+
+    {% if "event" == column.name | lower %} 
+        {{ return(true) }}
+    {% elif "version" == column.name | lower %}
+        {{ return(true) }}
+    {% else %}
+        {{ return(false) }}
+    {% endif %}
+{% endmacro %}
+
 
 
 {% macro convert_to_data_type(item) %}
 -- https://www.webforefront.com/django/usebuiltinjinjafilters.html
 
-
+-- intialize variable as empty 
 {% set item_type = '' %}
-
 {% if item is none %}
 {% set item_type = "Null" %}
 {% elif item is string %}
@@ -46,23 +46,20 @@
 {% elif item is number %}
 {% set item_type = "Number" %}
 {% elif item is mapping %}
-    {% set item_type = "Dict" %}
+{   % set item_type = "Dict" %}
 {% elif avo_audit.is_date(item) %}
 {% set item_type = "Datetime" %}
 {% else %}
 {{ log(item, true) }}
-
-
 {% endif %}
 {{ return(item_type) }}
 {% endmacro %}
 
 
-{% macro parse_relation(relation) %}
+{% macro parse_relation(relation, timewindow) %}
 
 {%- set raw_columns = adapter.get_columns_in_relation(relation) -%}
 
--- {% set filter_columns=avo_audit.pop_columns_contains(dbt_columns, "context_") %}
 
 {% set check_cols_csv = filter_columns | map(attribute='quoted') | join(', ') %}
 
@@ -77,18 +74,24 @@
 {%- set events = load_result('events') -%}
 {%- set events_data = events['data'] -%}
 
+{%- set event_infos = [] %}
 
 --- convert the data into data types
 {%- set new_rows = [] %}
 {% for rower in events_data %}
 
 {%- set new_columns = [] %}
+{%- set event_info_columns = [] %}
 {% for item in rower %}
-
+{% if avo_audit.is_event_info(loop.index-1, raw_columns) %}
+    {% do event_info_columns.append((raw_columns[loop.index-1].name, item)) %}
+{% else %}
 {% set item = avo_audit.convert_to_data_type(item) %}
 {% do new_columns.append(item) %}
+{% endif %}
 {% endfor %}
 {% do new_rows.append(new_columns) %}
+{% do event_infos.append(event_info_columns) %}
 {% endfor %}
 
 --- clean up the columns we know we dont want in the array
@@ -107,15 +110,16 @@
 
 
 {% for column in raw_columns %}
-{{ log("LOOP INDEX", true) }}
-{{ log(loop.index, true) }}
+
 {% if (avo_audit.is_property(loop.index-1, raw_columns)) %}
 {% do property_columns.append(column.name) %}
 {% endif %}
 {% endfor %}
 
-{{ log("PROPERTY COLUMNS", true)}}
-{{ log(property_columns, true)}}
+{{ log(event_infos, true)}}
+
+
+
 
 select * from {{ relation }} limit 1
 
