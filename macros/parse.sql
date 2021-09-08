@@ -19,16 +19,16 @@
 {% endmacro %}
 
 
-{% macro is_event_info(index, column_names) %}
+{% macro build_event_info(index, column_names, item) %}
     
     {% set column = column_names[index] %}
 
     {% if "event" == column.name | lower %} 
-        {{ return(true) }}
+        {{ return(("event_name", item)) }}
     {% elif "version" == column.name | lower %}
-        {{ return(true) }}
+        {{ return(("version", item)) }}
     {% else %}
-        {{ return(false) }}
+        {{ return(none) }}
     {% endif %}
 {% endmacro %}
 
@@ -49,8 +49,6 @@
 {   % set item_type = "Dict" %}
 {% elif avo_audit.is_date(item) %}
 {% set item_type = "Datetime" %}
-{% else %}
-{{ log(item, true) }}
 {% endif %}
 {{ return(item_type) }}
 {% endmacro %}
@@ -81,10 +79,11 @@
 {% for rower in events_data %}
 
 {%- set new_columns = [] %}
-{%- set event_info_columns = [] %}
+{%- set event_info_columns = ({}) %}
 {% for item in rower %}
-{% if avo_audit.is_event_info(loop.index-1, raw_columns) %}
-    {% do event_info_columns.append((raw_columns[loop.index-1].name, item)) %}
+{% set event_info = avo_audit.build_event_info(loop.index-1, raw_columns, item) %}
+{% if event_info != none %}
+    {% do event_info_columns.update({event_info[0]: event_info[1]}) %}
 {% else %}
 {% set item = avo_audit.convert_to_data_type(item) %}
 {% do new_columns.append(item) %}
@@ -97,7 +96,7 @@
 --- clean up the columns we know we dont want in the array
 --- event, context_
 
-{% for r in new_rows [] %}
+{% for r in new_rows %}
 
 {% for column in r %}
 {% if not (avo_audit.is_property(loop.index-1, raw_columns)) %}
@@ -116,12 +115,38 @@
 {% endif %}
 {% endfor %}
 
-{{ log(event_infos, true)}}
+{% set eventNameToVersionToSignatures = [] %}
 
 
+{% for r in new_rows %}
+
+{% set event_info = event_infos[loop.index -1] %}
+
+{% set eventNameToVersionToSignature = [] %}
+
+{% do eventNameToVersionToSignatures.append((event_info["event_name"], event_info["version"], property_columns, r)) %}
+
+{% endfor %}
+
+{{ log(eventNameToVersionToSignatures, true) }}
+
+{%- call statement('create', fetch_result=True) -%}
+
+    CREATE TABLE IF NOT EXISTS
+        dbt_avo_test.alex (event_name STRING, version STRING, property_name_mapping STRING, property_signature_mapping STRING);
+    INSERT INTO
+        dbt_avo_test.alex (event_name, version, property_name_mapping, property_signature_mapping)
+    VALUES
+        {% for valuesRow in eventNameToVersionToSignatures %}
+            ("{{valuesRow[0]}}", "{{valuesRow[1]}}", "{{valuesRow[2]}}", "{{valuesRow[3]}}")
+            {% if not loop.last %}
+            ,
+            {% endif %}
+        {% endfor %}
+
+{%- endcall -%}
 
 
-select * from {{ relation }} limit 1
-
+select * from {{ relation }}
 
 {% endmacro %}
