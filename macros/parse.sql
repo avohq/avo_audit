@@ -7,9 +7,9 @@
 
 {% macro is_property(index, columns) %}
     {% set column = columns[index] %}
-    {% if "context_" | lower in column.name | lower %}
+    {% if "context_" in column.name | lower %}
         { return(false)}
-    { elif "event" | lower == column.name | lower %}
+    { elif "event" == column.name | lower %}
         {{ return(false) }} 
     {% else %}
         {{ return(true) }}
@@ -49,7 +49,7 @@
 
 {% macro parse_relation(relation, timewindow) %}
 
-    {%- set raw_columns = adapter.get_columns_in_relation(relation) -%}
+    {%- set column_names = adapter.get_columns_in_relation(relation) -%}
     {% set check_cols_csv = filter_columns | map(attribute='quoted') | join(', ') %}
 
     {%- call statement('events', fetch_result=True) -%}
@@ -60,16 +60,16 @@
 
     {%- set events = load_result('events') -%}
     {%- set events_data = events['data'] -%}
-    {%- set event_infos = [] %}
+    {%- set event_info_rows = [] %}
 
 --- convert the data into data types
-    {%- set new_rows = [] %}
+    {%- set property_signature_type_rows = [] %}
      -- O(n"2)
     {% for rower in events_data %}
         {%- set new_columns = [] %}
         {%- set event_info_columns = ({}) %}
         {% for item in rower %}
-            {% set event_info = avo_audit.build_event_info(loop.index-1, raw_columns, item) %}
+            {% set event_info = avo_audit.build_event_info(loop.index-1, column_names, item) %}
             {% if event_info != none %}
                 {% do event_info_columns.update({event_info[0]: event_info[1]}) %}
             {% else %}
@@ -77,28 +77,19 @@
                 {% do new_columns.append(item) %}
             {% endif %}
         {% endfor %}
-        {% do new_rows.append(new_columns) %}
-        {% do event_infos.append(event_info_columns) %}
+        {% do property_signature_type_rows.append(new_columns) %}
+        {% do event_info_rows.append(event_info_columns) %}
     {% endfor %}
 
 --- clean up the columns we know we dont want in the array
 --- event, context_
 
-    -- O(n"2)
-    {% for r in new_rows %}
-        {% for column in r %}
-            {% if not (avo_audit.is_property(loop.index-1, raw_columns)) %}
-                {% do r.pop(loop.index-1) %}
-            {% endif %}
-        {% endfor %}
-    {% endfor %}
-
     {% set property_columns = [] %}
 
      -- O(n)
-    {% for column in raw_columns %}
+    {% for column in column_names %}
 
-        {% if (avo_audit.is_property(loop.index-1, raw_columns)) %}
+        {% if (avo_audit.is_property(loop.index-1, column_names)) %}
             {% do property_columns.append(column.name) %}
         {% endif %}
     {% endfor %}
@@ -106,11 +97,9 @@
     {% set eventNameToVersionToSignatures = [] %}
 
     -- O(n)
-    {% for r in new_rows %}
+    {% for r in property_signature_type_rows %}
 
-        {% set event_info = event_infos[loop.index -1] %}
-
-        {% set eventNameToVersionToSignature = [] %}
+        {% set event_info = event_info_rows[loop.index -1] %}
 
         {% do eventNameToVersionToSignatures.append((event_info["event_name"], event_info["version"], property_columns, r)) %}
 
