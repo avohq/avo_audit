@@ -8,8 +8,8 @@
 {% macro is_property(index, columns) %}
     {% set column = columns[index] %}
     {% if "context_" in column.name | lower %}
-        { return(false)}
-    { elif "event" == column.name | lower %}
+        {{ return(false) }}
+    {% elif "event" == column.name | lower %}
         {{ return(false) }} 
     {% else %}
         {{ return(true) }}
@@ -28,6 +28,22 @@
     {% endif %}
 {% endmacro %}
 
+{% macro signature_name_mapping(relation) %}
+
+    {%- set column_names = adapter.get_columns_in_relation(relation) -%}
+
+    {%- set property_columns = [] %}
+
+    {% for column in column_names %}
+
+        {% if (avo_audit.is_property(loop.index-1, column_names)) %}
+            {% do property_columns.append(column.name) %}
+        {% endif %}
+    {% endfor %}
+
+    {{ return(property_columns) }}
+{% endmacro %}
+
 
 
 {% macro convert_to_data_type(item) %}
@@ -43,7 +59,12 @@
     {% elif avo_audit.is_date(item) %}
         {{ return("Datetime")}}
     {% endif %}
-    {{ return(item_type) }}
+{% endmacro %}
+
+{% macro convert_to_type(column_name) %}
+
+    {{ column_name }}
+
 {% endmacro %}
 
 
@@ -122,5 +143,21 @@
     {%- endcall -%}
 
     -- TODO: Get rid of this select
-    select * from {{ relation }}
+
+    {%- set names = avo_audit.signature_name_mapping(relation) %}
+
+
+    select 
+        [{% for name in names %}
+            ifnull(CAST({{name}} as string), 'Null')
+            {% if not loop.last %}
+                ,
+            {% endif %}
+        {% endfor %}]
+         as fields_asd
+    from {{ relation }}
+    
+        
+    
+
 {% endmacro %}
