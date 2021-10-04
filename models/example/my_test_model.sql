@@ -1,14 +1,7 @@
 
 
-
-{% set dbt_relation=adapter.get_relation(
-      database=target.database,
-      schema="avo_analytics_playground",
-      identifier="branch_created"
-) -%}
-
-
+{{ config(materialized='table', sort='timestamp', dist='event') }}
 
 {{
-    parse_relation(dbt_relation)
+    join_schema_into_table('avo_analytics_playground', 'event', 'version', 'sent_at')
 }}
