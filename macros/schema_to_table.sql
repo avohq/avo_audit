@@ -24,7 +24,8 @@
 {%- set relations = filter_event_tables(event_relations, event_name_column, event_version_column, event_date_column) -%}
 
 {% for event_relation in relations %}
-  select 
+  select
+    ROW_NUMBER() over () as ID,
     {{event_name_column}}, 
     {{event_version_column}}, 
     {{event_date_column}} 
