@@ -1,15 +1,15 @@
-{% macro filter_event_tables(event_relations, event_name_column, event_version_column, event_date_column) %}
+{% macro filter_event_tables(event_relations, event_name_column, event_version_column, event_date_column, event_source_column) %}
   {%- set relations = [] -%}
   {% for event_relation in event_relations %}
     {%- set column_names = adapter.get_columns_in_relation(event_relation) -%}
     {%- set required_columns = [] -%}
     {% for column in column_names %}
-      {% if column.name == event_name_column or column.name == event_version_column or column.name == event_date_column %}
+      {% if column.name == event_name_column or column.name == event_version_column or column.name == event_date_column or column.name == event_source_column %}
         {% do required_columns.append(column.name) %}
       {% endif %}
     {% endfor %}
 
-    {% if required_columns|length == 3 %}
+    {% if required_columns|length == 4 %}
       {% do relations.append(event_relation) %}
     {% endif %}
   {% endfor %}
@@ -18,17 +18,18 @@
 {% endmacro %}
  
 
-{% macro join_schema_into_table(raw_event_schema, event_name_column, event_version_column, event_date_column) %}
+{% macro join_schema_into_table(raw_event_schema, event_name_column, event_version_column, event_date_column, event_source_column) %}
 {% set event_relations = dbt_utils.get_relations_by_pattern(raw_event_schema, '%') %}
 
-{%- set relations = filter_event_tables(event_relations, event_name_column, event_version_column, event_date_column) -%}
+{%- set relations = filter_event_tables(event_relations, event_name_column, event_version_column, event_date_column, event_source_column) -%}
 
 {% for event_relation in relations %}
   select
     ROW_NUMBER() over () as ID,
-    {{event_name_column}}, 
-    {{event_version_column}}, 
-    {{event_date_column}} 
+    {{event_name_column}} as event_name, 
+    {{event_version_column}} as version, 
+    {{event_date_column}} as ts,
+    {{event_source_column}} as source
   from 
     {{event_relation}}
   {% if not loop.last %}
