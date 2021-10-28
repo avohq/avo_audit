@@ -26,10 +26,10 @@
 {% for event_relation in relations %}
   select
     ROW_NUMBER() over () as ID,
-    {{event_name_column}} as event_name, 
-    {{event_version_column}} as version, 
-    {{event_date_column}} as ts,
-    {{event_source_column}} as source
+    {{event_name_column}} as {{event_name_column}},
+    {{event_version_column}} as {{event_version_column}},
+    {{event_date_column}} as {{event_date_column}},
+    {{event_source_column}} as {{event_source_column}}
   from 
     {{event_relation}}
   {% if not loop.last %}
