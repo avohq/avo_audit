@@ -1,3 +1,13 @@
+# Algorithm used in this macro is inspired by Stack overflow answer called 474 Robust peak detection algorithm (using z-scores)
+# Currently it is a simplified version of it and not as good, but the goal is to implement the algorithm as described in the stack overflow answer.
+#
+# Credit for algorithm: 
+# 
+# Brakel, J.P.G. van (2014). "Robust peak detection algorithm using z-scores". Stack Overflow. 
+# Available at: https://stackoverflow.com/questions/22583391/peak-signal-detection-in-realtime-timeseries-data/22640362#22640362 (version: 2020-11-08).
+#
+
+
 {% macro new_audit_event_volume(volume_relation, end_date, days_back, days_lag, event_name_column, event_version_column, event_date_column, event_source_column) %}
 
 {%- set total_days = days_back + days_lag -%}

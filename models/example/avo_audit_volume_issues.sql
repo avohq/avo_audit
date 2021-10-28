@@ -11,5 +11,5 @@
 
 
 {{
-  new_audit_event_volume(ref('all_events_table'), endDate, days_back, days_lag, event_name_column, event_version_column, event_date_column, event_source_column)
+  new_audit_event_volume(ref('avo_audit_all_events_table'), endDate, days_back, days_lag, event_name_column, event_version_column, event_date_column, event_source_column)
 }}
