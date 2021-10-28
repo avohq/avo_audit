@@ -125,6 +125,9 @@ select
 
 
 select * from signal_query
+WHERE
+    (select signal FROM UNNEST(signals) AS signal where signal = 1 GROUP BY signal) = 1
+    OR (select signal from UNNEST(signals) AS signal where signal = -1 GROUP BY signal) = -1
 
 
 {% endmacro %}
