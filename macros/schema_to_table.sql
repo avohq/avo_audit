@@ -1,3 +1,8 @@
+-- This macro is a helper macro to join together multiple tables inside a dataset into 1 table.
+-- It is intended to help those who for example have segment + bigquery (Like Avo does) to join together the raw event dataset 
+-- into 1 table to then query the volume from that table.
+-- Note that running this query in production can be expensive with large amount of data as it runs through all of your events, and inserts it into a new table.
+
 {% macro filter_event_tables(event_relations, event_name_column, event_version_column, event_date_column, event_source_column) %}
   
   {%- set relations = [] -%}

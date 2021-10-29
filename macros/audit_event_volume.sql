@@ -6,32 +6,40 @@
 # Brakel, J.P.G. van (2014). "Robust peak detection algorithm using z-scores". Stack Overflow. 
 # Available at: https://stackoverflow.com/questions/22583391/peak-signal-detection-in-realtime-timeseries-data/22640362#22640362 (version: 2020-11-08).
 #
-{% macro new_audit_event_volume(volume_relation, end_date, days_back, days_lag, event_name_column, event_version_column, event_date_column, event_source_column) %}
+# 
+
+{% macro new_audit_event_volume(volume_relation, end_date, days_back, days_lag, event_name_column, event_date_column, event_source_column) %}
 
 {%- set total_days = days_back + days_lag -%}
 {% set threshold = 3.5 %}
 
 with union_query as (
+  -- Big Union query that runs ties queries together for each day in the time period selected
+  -- And unions the days together
 
   {% for i in range(total_days) %}
 
     {%- set d = dbt_date.n_days_ago(i, end_date) -%}
 
       with all_events_query as (
-  
+        -- Find all event/source combos for the date range given to ensure there will be no nulls for each day.
+
         select {{event_name_column}}, {{event_source_column}} 
         from {{ volume_relation }} 
         where DATE({{event_date_column}}) >= {{ d }} 
           and DATE({{event_date_column}}) <= {{end_date}}
 
       ), total_events_query as (
-   
+          -- Count all events for each source on each day.
+
           select count({{event_source_column}}) as total_source_events 
           from {{ volume_relation }} 
           where DATE({{event_date_column}}) = {{ d }}
     
      ), events_dates_combo as (
-   
+        -- create a event/source/day combo for all all event/source from all_events_query
+        -- So all combos exist on each day in the following queries.
+
         select 
           all_events.{{event_name_column}} as event_name, 
           all_events.{{event_source_column}} as source,
@@ -47,16 +55,22 @@ with union_query as (
           day
  
       ), all_event_dates as (
- 
+        -- Makes event_name/source/day combo for all event_name/source combos in 'all_events_query'
+        -- Counts the number of event_name in the combo
+        -- adds total source events for that day with as 'total_source_events'
+        -- Example output:
+        -- event_name  | source     | day          | event_count | total_source events
+        -- "event_1"  | "source1"  | "2021-10-25" |     238     |  16432
+        -- "event_2"  | "source1" | "2021-10-25" |     1023    |  16432
+
         select 
           combo.event_name event_name,
           combo.source source,
           combo.day as day,
-          max(volume.{{event_version_column}}) as version,
           count(volume.{{event_name_column}}) as event_count,
           (
             select total_source_events from total_events_query
-          ) as total_source_events
+          ) as event_source_count
         from events_dates_combo combo
         left join {{volume_relation}} volume
         on volume.{{event_name_column}} = combo.event_name 
@@ -67,22 +81,24 @@ with union_query as (
           combo.day,
           combo.event_name,
           combo.source
-
       )
-      
+
+      -- Select the each combo from 'all_event_dates' query, and add the percentage column which is 
+      -- total amount of event_name for this source divided by total events on the source. multiplied by 100(for actual percentages)
       select 
         event_name,
         source,
         day,
-        SUM(event_count) as event_count,
-        SUM(total_source_events) as event_source_count,
-        SUM(event_count / total_source_events) * 100 as percentage,
-        MAX(version) as version
+        event_count,
+        event_source_count,
+        ABS(event_count / event_source_count) * 100 as percentage
       from all_event_dates
       group by
         event_name,
         source,
-        day
+        day,
+        event_count,
+        event_source_count
       {% if not loop.first %}
         )
       {% endif %}
@@ -91,8 +107,12 @@ with union_query as (
       {% endif %} 
   {% endfor %}
 
-), avarage as (
-  
+), 
+
+avarage as (  
+  -- Get the Avarage and standard deviation of percentages over the time period for all event_name source combinations.
+  -- This is to be able to check each percentage whether its out of its normal bounds.
+
   select
     event_name,
     source,
@@ -106,7 +126,16 @@ with union_query as (
     event_name,
     source
 
-), groupQuery as (
+), calculate_signal as (
+  -- Calculcates the signal based on the percentage of events for each day against 
+  -- the avarage and standard deviation. 
+  --
+  -- Signal:   
+  --   - When signal is 1 there is a spike in amount of events for this event_name/source combination
+  --   - When signal is -1 there is a drop in amount of events for this event_name/source combination
+  --   - When signal is 0 there the amount of events is within it's normal range.
+  -- 
+  -- Based on the algorithm referenced at the top of this file.
 
   select 
     t.event_name as event_name,  
@@ -114,7 +143,6 @@ with union_query as (
     t.day as day,
     MAX(t.event_count) as event_count,
     MAX(t.event_source_count) as total_source_count,
-    MAX(t.version) as version,
     MAX(t.percentage) as percentage,
     MAX(m.avg_percentage) as avg_percentage,
     MAX(m.std_percentage) as std_percentage,
@@ -131,7 +159,8 @@ with union_query as (
     t.source, 
     t.day
 
-), signal_query as (
+), aggregate_by_day_asc as (
+  -- Aggregates together all counters and days for  event_name/source combinations and orders it by day ascending.
 
   select 
     event_name,
@@ -141,15 +170,18 @@ with union_query as (
     ARRAY_AGG(total_source_count order by day ASC) as total_events_on_source, 
     ARRAY_AGG(percentage order by day ASC) as percentages,
     ARRAY_AGG(signal order by day ASC) as signals,
-  from groupQuery
+  from calculate_signal
   group by
     event_name,
     source
 )
 
+
+-- Only return event_name/source combinations that have spiked or dropped for at least 1 day.
+-- Disregard all combinations that were iniside the norm for the whole time period to reduce noise.
 select 
   * 
-from signal_query
+from aggregate_by_day_asc
 where
     (select signal FROM UNNEST(signals) AS signal where signal = 1 GROUP BY signal) = 1
     OR (select signal from UNNEST(signals) AS signal where signal = -1 GROUP BY signal) = -1
