@@ -11,7 +11,7 @@
 {% macro new_audit_event_volume(volume_relation, end_date, days_back, days_lag, event_name_column, event_date_column, event_source_column) %}
 
 {%- set total_days = days_back + days_lag -%}
-{% set threshold = 3.5 %}
+{% set threshold = 2.5 %}
 
 with union_query as (
   -- Big Union query that runs ties queries together for each day in the time period selected
@@ -77,6 +77,7 @@ with union_query as (
           and volume.{{event_source_column}} = combo.source 
           and DATE(volume.{{event_date_column}}) = combo.day
         where combo.day = {{d}}
+        and (select total_source_events from total_events_query) > 0
         group by
           combo.day,
           combo.event_name,
@@ -165,6 +166,8 @@ avarage as (
   select 
     event_name,
     source,
+    MAX(avg_percentage) as avg_percentage,
+    MAX(std_percentage) as std_percentage,
     ARRAY_AGG(day order by day ASC) as days,
     ARRAY_AGG(event_count order by day ASC) as event_counts,
     ARRAY_AGG(total_source_count order by day ASC) as total_events_on_source, 
@@ -185,5 +188,6 @@ from aggregate_by_day_asc
 where
     (select signal FROM UNNEST(signals) AS signal where signal = 1 GROUP BY signal) = 1
     OR (select signal from UNNEST(signals) AS signal where signal = -1 GROUP BY signal) = -1
+
 
 {% endmacro %}
