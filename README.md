@@ -45,10 +45,55 @@ Run `dbt deps` in the root of your dbt project to install the package.
 
 # Macros
 
+### audit_event_volume
+This macro is intended to compare a recent time period by comparing the volume for each day in the time period, to detect significant drops or rises in event volumes.
+
+To execute, run the following commands in your dbt dev environment:"
+```
+{% set raw_event_relation=adapter.get_relation(
+      database=target.database,
+      schema="raw_event_schema",
+      identifier="raw_event_table"
+) -%}
+
+{{ avo_audit.audit_event_volume(
+    relation=raw_event_relation,
+    end_date="2021-10-25",
+    days_back=10,
+    days_lag=5,
+    event_name_column="event",
+    event_date_column="ts",
+    event_source_column="client"
+) }}
+```
+
+
+
+
+
+
+## join_schema_to_table
+This macro is a helper macro for those who do not have all raw events in a single table, but instead in multiple tables in one dataset.
+It is intended to extract the key columns needed and merge all the tables into 1.
+This is something we use to be able to use `audit_event_volume`
+```
+// schema/bigquery dataset
+{{
+    join_schema_into_table(
+        schema="avo_analytics_playground",
+        event_name_column="event", 
+        event_version_column="version", event_date_column="sent_at", 
+        event_source_column="client"
+    )
+}}
+```
+
 ### Disclaimer
 > This project is still work in progress. These macros have not been fully implemented yet, however some of the work has been started and we will be doing our best to get this up and running as soon as possible. Reach out if you want to contribute to the project or join our alpha group to be one of the first to try out what we build and provide feedback!"
 
 
+
+# Macros coming soon.
 ## audit
 
 Audit runs on your raw events table and generates a table of issue types like the ones listed in [Issue Types](#Issue-types).
@@ -205,26 +250,8 @@ Execute the following commands in your dev environment
 # Upcoming Macros
 
 ### Disclaimer
-> Here we list macro's that we plan on building. If you want to contribute, this list of macros is up for grabs!
+> Here we list things that we plan on building. If you want to contribute, this list of macros is up for grabs!
 
-## audit_volume
-This macro is intended to compare data from two time periods to each other and find significant drops or rises in event or event signature volumes.
-
-To execute, run the following commands in your dbt dev environment:"
-```
-{% set raw_event_relation=adapter.get_relation(
-      database=target.database,
-      schema="raw_event_schema",
-      identifier="raw_event_table"
-) -%}
-
-{{ avo_audit.audit_volume(
-    relation=raw_event_relation,
-    date_partition=”sent_at”,
-    first_date: <Datetime>,
-    Second_date: <Datetime>
-) }}
-```
 
 
 # View the issues report

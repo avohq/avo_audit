@@ -1,0 +1,31 @@
+version: 2
+
+models:
+  - name: avo_audit_volume_issues
+    columns:
+      - name: event_name
+        tests:
+          - not_null
+      - name: source
+        tests:
+          - not_null
+      - name: days
+        tests:
+          - not_null
+      - name: event_counts
+        tests:
+          - not_null
+      - name: total_events_on_source
+        tests: 
+          - not_null
+      - name: percentages
+        tests:
+          - not_null
+      - name: signals
+        tests:
+          - not_null
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+          - event_name
+          - source

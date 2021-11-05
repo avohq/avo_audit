@@ -3,7 +3,7 @@
 # and underscores. A good package name should reflect your organization's
 # name or the intended use of these models
 name: 'avo_audit'
-version: '1.0.0'
+version: '0.1.0'
 config-version: 2
 
 # This setting configures which "profile" dbt uses for this project.
@@ -36,3 +36,6 @@ models:
       # Applies to all files under models/example/
       example:
           materialized: view
+
+vars:
+    'dbt_date:time_zone': 'GMT'
