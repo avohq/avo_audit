@@ -3,7 +3,7 @@
 name: CI
 
 env:
-  DBT_PROFILES_DIR: ./integration_tests/
+  DBT_PROFILES_DIR: ./
   DBT_VERSION: 0.21.0
 
 defaults:
