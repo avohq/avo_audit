@@ -1,0 +1,12 @@
+selectors:
+  - name: avo_audit_integration_tests
+    description: "Avo Audit Integration Test Run"
+    definition:
+      union:
+        - method: path
+          value: models
+          greedy: true  # will include all tests that touch model_a
+        - exclude:
+          - method: tag
+            value: "example"
+
