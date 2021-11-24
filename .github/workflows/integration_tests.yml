@@ -6,6 +6,7 @@ env:
   DBT_PROFILES_DIR: ./
   DBT_VERSION: 0.21.0
 
+
 defaults:
   run:
     working-directory: ./integration_tests
@@ -30,10 +31,16 @@ jobs:
     runs-on: ubuntu-latest
     container: python:3.8-buster
     env:
-      BIGQUERY_PROJECT: ${{ secrets.BIGQUERY_PROJECT }}
-      BIGQUERY_SERVICE_ACCOUNT_JSON: ${{ secrets.BIGQUERY_SERVICE_ACCOUNT_JSON }}
-      BIGQUERY_KEYFILE: ./bigquery-service-key.json
-
+      BIGQUERY_TYPE: ${{ secrets.BIGQUERY_TYPE }}
+      BIGQUERY_PROJECT_ID: ${{ secrets.BIGQUERY_PROJECT_ID }}
+      BIGQUERY_PRIVATE_KEY: ${{ secrets.BIGQUERY_PRIVATE_KEY }}
+      BIGQUERY_PRIVATE_KEY_ID: ${{ secrets.BIGQUERY_PRIVATE_KEY_ID }}
+      BIGQUERY_CLIENT_EMAIL: ${{ secrets.BIGQUERY_CLIENT_EMAIL }}
+      BIGQUERY_CLIENT_ID: ${{ secrets.BIGQUERY_CLIENT_ID }}
+      BIGQUERY_AUTH_URI: ${{ secrets.BIGQUERY_AUTH_URI }}
+      BIGQUERY_TOKEN_URI: ${{ secrets.BIGQUERY_TOKEN_URI }}
+      BIGQUERY_AUTH_PROVIDER_X509_CERT_URL: ${{ secrets.BIGQUERY_AUTH_PROVIDER_X509_CERT_URL }}
+      BIGQUERY_CLIENT_X509_CERT_URL: ${{ secrets.BIGQUERY_CLIENT_X509_CERT_URL }}
     steps:
       - uses: actions/checkout@v2
       - name: Install dependencies
@@ -43,9 +50,9 @@ jobs:
           dbt --version
       - name: Test database connection
         run: |
-          echo "${BIGQUERY_SERVICE_ACCOUNT_JSON}" > ${BIGQUERY_KEYFILE}
           dbt debug --target bigquery
       - name: Run tests
         run: |
           dbt seed --target bigquery
-          dbt test --target bigquery
+          dbt run --selector avo_audit_integration_tests --target bigquery
+          dbt test --selector avo_audit_integration_tests --target bigquery
