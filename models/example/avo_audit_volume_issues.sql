@@ -1,7 +1,11 @@
 
 
 {{ config(materialized='table', sort='timestamp', dist='event') }}
-{%- set endDate = dbt_date.n_days_ago(1) -%}
+{% set end_date_script = modules.datetime.date(2021, 11, 03) %}
+{% set today = modules.datetime.date.today() %}
+{% set delta = today - end_date_script %}
+
+{% set end_date = dbt_date.n_days_ago(delta.days) %}
 {%- set days_back = 10 -%}
 {%- set days_lag = 5 -%}
 {%- set event_name_column = 'event' -%}
@@ -10,5 +14,5 @@
 
 
 {{
-  new_audit_event_volume(ref('avo_audit_experiment_data'), endDate, days_back, days_lag, event_name_column, event_date_column, event_source_column)
+  audit_event_volume(ref('avo_audit_experiment_data'), end_date, days_back, days_lag, event_name_column, event_date_column, event_source_column)
 }}

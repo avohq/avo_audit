@@ -1,5 +1,5 @@
 integration_tests:
-  target: bigquery
+  target: snowflake
   outputs:
     bigquery:
       type: bigquery
@@ -10,12 +10,15 @@ integration_tests:
       timeout_seconds: 300
       priority: interactive
       keyfile_json:
-        type: "service_account"
-        project_id: "{{ env_var('BIGQUERY_PROJECT') }}"
-        private_key_id: "{{ env_var('PRIVATE_KEY_ID') }}"
-        private_key: "{{ env_var('PRIVATE_KEY') }}"
-        client_email: "{{ env_var('client_email') }}"
-        auth_uri: "https://accounts.google.com/o/oauth2/auth"
-        token_uri: "https://oauth2.googleapis.com/token"
-        auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs"
-        client_x509_cert_url: "{{ env_var('CLIENT_X509_CERT_URL') }}"
+          type: "{{ env_var('BIGQUERY_TYPE') }}"
+          project_id: "avo-audit"
+          private_key_id: "{{ env_var('BIGQUERY_PRIVATE_KEY_ID') }}"
+          private_key: "{{ env_var('BIGQUERY_PRIVATE_KEY') }}"
+          client_email: "{{ env_var('BIGQUERY_CLIENT_EMAIL') }}"
+          client_id: "{{ env_var('BIGQUERY_CLIENT_ID') }}"
+          auth_uri: "{{ env_var('BIGQUERY_AUTH_URI') }}"
+          token_uri: "{{ env_var('BIGQUERY_TOKEN_URI') }}"
+          auth_provider_x509_cert_url: "{{ env_var('BIGQUERY_AUTH_PROVIDER_X509_CERT_URL') }}"
+          client_x509_cert_url: "{{ env_var('BIGQUERY_CLIENT_X509_CERT_URL') }}"
+
+        
