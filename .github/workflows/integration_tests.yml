@@ -1,0 +1,58 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+env:
+  DBT_PROFILES_DIR: ./
+  DBT_VERSION: 0.21.0
+
+
+defaults:
+  run:
+    working-directory: ./integration_tests
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  pull_request:
+    branches: [ master ]
+
+
+# will cancel previous workflows triggered by the same event and for the same ref for PRs or same SHA otherwise
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ contains(github.event_name, 'pull_request') && github.event.pull_request.head.ref || github.sha }}
+  cancel-in-progress: true
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  integration_bigquery:
+    name: integration-bigquery
+    runs-on: ubuntu-latest
+    container: python:3.8-buster
+    env:
+      BIGQUERY_TYPE: ${{ secrets.BIGQUERY_TYPE }}
+      BIGQUERY_PROJECT_ID: ${{ secrets.BIGQUERY_PROJECT_ID }}
+      BIGQUERY_PRIVATE_KEY: ${{ secrets.BIGQUERY_PRIVATE_KEY }}
+      BIGQUERY_PRIVATE_KEY_ID: ${{ secrets.BIGQUERY_PRIVATE_KEY_ID }}
+      BIGQUERY_CLIENT_EMAIL: ${{ secrets.BIGQUERY_CLIENT_EMAIL }}
+      BIGQUERY_CLIENT_ID: ${{ secrets.BIGQUERY_CLIENT_ID }}
+      BIGQUERY_AUTH_URI: ${{ secrets.BIGQUERY_AUTH_URI }}
+      BIGQUERY_TOKEN_URI: ${{ secrets.BIGQUERY_TOKEN_URI }}
+      BIGQUERY_AUTH_PROVIDER_X509_CERT_URL: ${{ secrets.BIGQUERY_AUTH_PROVIDER_X509_CERT_URL }}
+      BIGQUERY_CLIENT_X509_CERT_URL: ${{ secrets.BIGQUERY_CLIENT_X509_CERT_URL }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          pip install dbt==${DBT_VERSION}
+          dbt deps
+          dbt --version
+      - name: Test database connection
+        run: |
+          dbt debug --target bigquery
+      - name: Run tests
+        run: |
+          dbt seed --target bigquery
+          dbt run --selector avo_audit_integration_tests --target bigquery
+          dbt test --selector avo_audit_integration_tests --target bigquery

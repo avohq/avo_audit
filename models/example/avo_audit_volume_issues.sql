@@ -10,5 +10,5 @@
 
 
 {{
-  new_audit_event_volume(ref('avo_audit_experiment_data'), endDate, days_back, days_lag, event_name_column, event_date_column, event_source_column)
+  audit_event_volume(ref('avo_audit_experiment_data'), endDate, days_back, days_lag, event_name_column, event_date_column, event_source_column)
 }}

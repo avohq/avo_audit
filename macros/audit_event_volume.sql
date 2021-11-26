@@ -8,7 +8,7 @@
 #
 # 
 
-{% macro new_audit_event_volume(volume_relation, end_date, days_back, days_lag, event_name_column, event_date_column, event_source_column) %}
+{% macro audit_event_volume(volume_relation, end_date, days_back, days_lag, event_name_column, event_date_column, event_source_column) %}
 
 {%- set total_days = days_back + days_lag -%}
 {% set threshold = 2.5 %}

@@ -33,9 +33,11 @@ clean-targets:         # directories to be removed by `dbt clean`
 # using the `{{ config(...) }}` macro.
 models:
   avo_audit:
+      avo_audit_all_events_table:
       # Applies to all files under models/example/
       example:
           materialized: view
+          +tags: "example"
 
 vars:
     'dbt_date:time_zone': 'GMT'
