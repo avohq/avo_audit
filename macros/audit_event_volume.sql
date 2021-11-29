@@ -13,7 +13,33 @@
 {%- set total_days = days_back + days_lag -%}
 {% set threshold = 2.5 %}
 
-with union_query as (
+with generate_dates as (
+  {{ avo_audit.generate_dates_table(end_date, total_days) }}
+),  
+all_events_query as (
+        -- Find all event/source combos for the date range given to ensure there will be no nulls for each day.
+
+        select {{event_name_column}}, {{event_source_column}} 
+        from {{ volume_relation }} 
+        where DATE({{event_date_column}}) >= {{ dbt_date.n_days_ago(total_days, end_date) }} 
+          and DATE({{event_date_column}}) <= {{end_date}}
+), 
+events_dates_combo as (
+        -- create a event/source/day combo for all all event/source from all_events_query
+        -- So all combos exist on each day in the following queries.
+
+        select 
+          e.{{event_name_column}} as event_name, 
+          e.{{event_source_column}} as source,
+          g.day as day
+          from all_events_query as e cross join generate_dates as g
+         group by
+          event_name,
+          source,
+          day
+ 
+)
+, union_query as (
   -- Big Union query that runs ties queries together for each day in the time period selected
   -- And unions the days together
 
@@ -21,40 +47,14 @@ with union_query as (
 
     {%- set d = dbt_date.n_days_ago(i, end_date) -%}
 
-      with all_events_query as (
-        -- Find all event/source combos for the date range given to ensure there will be no nulls for each day.
-
-        select {{event_name_column}}, {{event_source_column}} 
-        from {{ volume_relation }} 
-        where DATE({{event_date_column}}) >= {{ d }} 
-          and DATE({{event_date_column}}) <= {{end_date}}
-
-      ), total_events_query as (
+      with total_events_query_{{i}} as (
           -- Count all events for each source on each day.
 
           select count({{event_source_column}}) as total_source_events 
           from {{ volume_relation }} 
           where DATE({{event_date_column}}) = {{ d }}
     
-     ), events_dates_combo as (
-        -- create a event/source/day combo for all all event/source from all_events_query
-        -- So all combos exist on each day in the following queries.
-
-        select 
-          all_events.{{event_name_column}} as event_name, 
-          all_events.{{event_source_column}} as source,
-          day
-        from all_events_query all_events,
-          UNNEST(GENERATE_DATE_ARRAY(
-            {{dbt_date.n_days_ago(total_days, end_date)}},
-            {{end_date}},
-            INTERVAL 1 day)) as day
-        group by
-          event_name,
-          source,
-          day
- 
-      ), all_event_dates as (
+     ), all_event_dates_{{i}} as (
         -- Makes event_name/source/day combo for all event_name/source combos in 'all_events_query'
         -- Counts the number of event_name in the combo
         -- adds total source events for that day with as 'total_source_events'
@@ -69,7 +69,7 @@ with union_query as (
           combo.day as day,
           count(volume.{{event_name_column}}) as event_count,
           (
-            select total_source_events from total_events_query
+            select total_source_events from total_events_query_{{i}}
           ) as event_source_count
         from events_dates_combo combo
         left join {{volume_relation}} volume
@@ -77,7 +77,7 @@ with union_query as (
           and volume.{{event_source_column}} = combo.source 
           and DATE(volume.{{event_date_column}}) = combo.day
         where combo.day = {{d}}
-        and (select total_source_events from total_events_query) > 0
+        and (select total_source_events from total_events_query_{{i}}) > 0
         group by
           combo.day,
           combo.event_name,
@@ -93,7 +93,7 @@ with union_query as (
         event_count,
         event_source_count,
         ABS(event_count / event_source_count) * 100 as percentage
-      from all_event_dates
+      from all_event_dates_{{i}}
       group by
         event_name,
         source,
@@ -107,22 +107,22 @@ with union_query as (
         union all (
       {% endif %} 
   {% endfor %}
-
 ), 
 
-avarage as (  
+daily_percentage as (
+  select event_name, source, day, percentage 
+  from union_query 
+  GROUP BY event_name, source, day, percentage
+), avarage as (  
   -- Get the Avarage and standard deviation of percentages over the time period for all event_name source combinations.
   -- This is to be able to check each percentage whether its out of its normal bounds.
 
   select
     event_name,
     source,
-    AVG(p.percentage) as avg_percentage,
-    STDDEV(p.percentage) as std_percentage,
-    from 
-    (
-      select event_name, source, day, percentage from union_query GROUP BY event_name, source, day, percentage
-    ) as p
+    AVG(percentage) as avg_percentage,
+    STDDEV(percentage) as std_percentage
+    from daily_percentage
   group by
     event_name,
     source
@@ -168,26 +168,17 @@ avarage as (
     source,
     MAX(avg_percentage) as avg_percentage,
     MAX(std_percentage) as std_percentage,
-    ARRAY_AGG(day order by day ASC) as days,
-    ARRAY_AGG(event_count order by day ASC) as event_counts,
-    ARRAY_AGG(total_source_count order by day ASC) as total_events_on_source, 
-    ARRAY_AGG(percentage order by day ASC) as percentages,
-    ARRAY_AGG(signal order by day ASC) as signals,
+    {{ avo_audit.array_agg_ordered('day', 'day', 'asc', 'days') }},
+    {{ avo_audit.array_agg_ordered('event_count', 'day', 'asc', 'event_counts') }},
+    {{ avo_audit.array_agg_ordered('total_source_count', 'day', 'asc', 'total_events_on_source') }},
+    {{ avo_audit.array_agg_ordered('percentage', 'day', 'asc', 'percentages') }}, 
+    {{ avo_audit.array_agg_ordered('signal', 'day', 'asc', 'signals') }}  
   from calculate_signal
   group by
     event_name,
     source
 )
-
-
--- Only return event_name/source combinations that have spiked or dropped for at least 1 day.
--- Disregard all combinations that were iniside the norm for the whole time period to reduce noise.
-select 
-  * 
-from aggregate_by_day_asc
-where
-    (select signal FROM UNNEST(signals) AS signal where signal = 1 GROUP BY signal) = 1
-    OR (select signal from UNNEST(signals) AS signal where signal = -1 GROUP BY signal) = -1
+{{avo_audit.find_signals('aggregate_by_day_asc')}}
 
 
 {% endmacro %}

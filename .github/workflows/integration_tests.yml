@@ -56,3 +56,31 @@ jobs:
           dbt seed --target bigquery
           dbt run --selector avo_audit_integration_tests --target bigquery
           dbt test --selector avo_audit_integration_tests --target bigquery
+   # This workflow contains a single job called "build"
+  integration_snowflake:
+    name: integration-snowflake
+    runs-on: ubuntu-latest
+    container: python:3.8-buster
+    env:
+      SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+      SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+      SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+      SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
+      SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+      SNOWFLAKE_SCHEMA: ${{ secrets.SNOWFLAKE_SCHEMA }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          pip install dbt==${DBT_VERSION}
+          dbt deps
+          dbt --version
+      - name: Test database connection
+        run: |
+          dbt debug --target snowflake
+      - name: Run tests
+        run: |
+          dbt seed --target snowflake
+          dbt run --selector avo_audit_integration_tests --target snowflake
+          dbt test --selector avo_audit_integration_tests --target snowflake

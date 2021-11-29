@@ -1,5 +1,5 @@
 integration_tests:
-  target: bigquery
+  target: snowflake
   outputs:
     bigquery:
       type: bigquery
@@ -20,4 +20,13 @@ integration_tests:
           token_uri: "{{ env_var('BIGQUERY_TOKEN_URI') }}"
           auth_provider_x509_cert_url: "{{ env_var('BIGQUERY_AUTH_PROVIDER_X509_CERT_URL') }}"
           client_x509_cert_url: "{{ env_var('BIGQUERY_CLIENT_X509_CERT_URL') }}"
-        
+    snowflake:
+      type: "snowflake"
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: "{{ env_var('SNOWFLAKE_ROLE') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE')}}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE') }}"
+      schema: "{{ env_var('SNOWFLAKE_SCHEMA') }}"
+      threads: 1
