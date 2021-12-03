@@ -1,0 +1,35 @@
+version: 2
+
+models: 
+  - name: avo_audit_table_with_anomoly
+    columns: 
+      - name: event
+        tests:
+          - not_null
+      - name: sent_at
+        tests: 
+          - not_null
+    tests:
+      - avo_audit.avo_audit_detect_event_count_anomoly:
+          event_name_column: event
+          event_date_column: sent_at
+          event_source_column: client
+          end_date: "2021-11-04"
+          config:
+                severity: error
+                error_if: "< 7"
+                warn_if: "> 7"
+  - name: avo_audit_table_with_no_anomoly
+    columns:
+      - name: event
+        tests:
+          - not_null
+      - name: sent_at
+        tests:
+          - not_null
+    tests:
+      - avo_audit.avo_audit_detect_event_count_anomoly:
+          event_name_column: event
+          event_date_column: sent_at
+          event_source_column: client
+          end_date: "2021-12-01"
