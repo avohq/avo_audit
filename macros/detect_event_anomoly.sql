@@ -8,7 +8,7 @@
 #
 # 
 
-{% macro test_avo_audit_detect_event_count_anomoly(model, event_name_column, event_date_column, event_source_column, end_date=avo_audit.date_yesterday(),  n_days=15) %}
+{% macro test_detect_event_anomoly(model, event_name_column, event_date_column, event_source_column, end_date=avo_audit.date_yesterday(),  n_days=15) %}
 
 {% set threshold = 2.5 %}
 
