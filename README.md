@@ -1,7 +1,7 @@
 # Avo Audit
 
-Avo audit helps you detect issues in your raw analytics event tables by querying a sample of the raw events and comparing them against each other.
-This allows you to find discrepancies between events and properties that should look the same, but don’t.
+Avo audit helps monitor anomolies in your raw event schema, by setting up tests using `test_avo_audit_detect_event_count_anomoly` you will be able to constantly monitor for any unexpected spike or drop in volume for any event.
+The package compares the volume of the event against total volume of events for each day, to be able to identify when a sudden change in volume for a particular event occurs.
 ## Installing the package
 Include the following in your `packages.yml` file in your dbt project:
 
