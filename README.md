@@ -77,16 +77,6 @@ This is something we use to be able to use `audit_event_volume`
 > This macro is a work in progress and is intended to help joining together tables of single events into one table to automatically include all events.
 test_avo_audit_detect_event_count_anomoly can also instead be applied as a test on all event tables that you want to monitor instead.
 # Coming soon
-## Issue types
-
-### Issues available in the alpha version:  
-
-**Property sometimes missing** – detects absence of event properties across tracking calls.  
->_Property onboarding status is not sent with 30% of the App Opened event._ 
-
-**Property type mismatch** – detects inconsistent event property types across tracking calls.  
->_Inconsistent type of property onboarding status on event App Opened: int (84%), string (16%)._
-
 ### Issue types on the roadmap (not prioritized list):
 * Event missing on some platforms
 * Property missing on some platforms
