@@ -4,5 +4,5 @@
 {%- set event_source_column = 'client' -%}
 
 {{
-  avo_audit.detect_event_anomoly(ref('avo_audit_normal_data'), event_name_column, event_date_column, event_source_column, "2021-12-01", n_days)
+  avo_audit.test_detect_event_anomoly(ref('avo_audit_normal_data'), event_name_column, event_date_column, event_source_column, "2021-12-01", n_days)
 }}
