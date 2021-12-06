@@ -47,7 +47,7 @@ This can also be set up as an automatic test to be run each day against the raw 
 models: 
   - name: NAME_OF_RAW_TABLE
     tests:
-      - avo_audit.avo_audit_detect_event_count_anomoly:
+      - avo_audit.avo_audit_detect_event_count_anomaly:
           event_name_column: <NAME_OF_EVENT_NAME_COLUMN>
           event_date_column: <NAME_OF_DATE_COLUMN>
           event_source_column: <NAME_OF_SOURCE_COLUMN> // ios / android / web 
