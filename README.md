@@ -1,6 +1,6 @@
 # Avo Audit
 
-Avo audit helps monitor anomolies in your raw event schema, by setting up tests using `test_avo_audit_detect_event_count_anomoly` you will be able to constantly monitor for any unexpected spike or drop in volume for any event.
+Avo audit helps monitor anomalies in your raw event schema, by setting up tests using `test_avo_audit_detect_event_count_anomoly` you will be able to constantly monitor for any unexpected spike or drop in volume for any event.
 The package compares the volume of the event against total volume of events for each day, to be able to identify when a sudden change in volume for a particular event occurs.
 ## Installing the package
 Include the following in your `packages.yml` file in your dbt project:
