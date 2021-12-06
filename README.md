@@ -52,7 +52,7 @@ models:
           event_date_column: <NAME_OF_DATE_COLUMN>
           event_source_column: <NAME_OF_SOURCE_COLUMN> // ios / android / web 
 ```
-This test will by default check the past 15 days from yesterday, and it will fail if any rows are returned which indicates an anomoly in event volume data for any event in your raw data.
+This test will by default check the past 15 days from yesterday, and it will fail if any rows are returned which indicates an anomaly in event volume data for any event in your raw data.
 
 
 
