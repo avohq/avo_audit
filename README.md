@@ -1,18 +1,82 @@
 # Avo Audit
 
-Avo audit helps you detect issues in your raw analytics event tables by querying a sample of the raw events and comparing them against each other.
-This allows you to find discrepancies between events and properties that should look the same, but don’t.
+Avo audit helps monitor anomalies in your raw event schema, by setting up tests using `test_avo_audit_detect_event_count_anomaly` you will be able to constantly monitor for any unexpected spike or drop in volume for any event.
+The package compares the volume of the event against total volume of events for each day, to be able to identify when a sudden change in volume for a particular event occurs.
+## Installing the package
+Include the following in your `packages.yml` file in your dbt project:
 
-## Issue types
+```
+packages:
+    - package: avo/avo_audit
+      version: ["0.1.0]
+```
 
-### Issues available in the alpha version:  
+Run `dbt deps` in the root of your dbt project to install the package.
 
-**Property sometimes missing** – detects absence of event properties across tracking calls.  
->_Property onboarding status is not sent with 30% of the App Opened event._ 
 
-**Property type mismatch** – detects inconsistent event property types across tracking calls.  
->_Inconsistent type of property onboarding status on event App Opened: int (84%), string (16%)._
+# Macros
 
+### test_avo_audit_detect_event_count_anomaly
+This macro is intended to compare a recent time period by comparing the volume for each day in the time period, to detect significant drops or rises in event volumes.
+
+To execute, run the following commands in your dbt dev environment:"
+```
+{% set raw_event_relation=adapter.get_relation(
+      database=target.database,
+      schema="raw_event_schema",
+      identifier="raw_event_table"
+) -%}
+
+{{ avo_audit.test_avo_audit_detect_event_count_anomaly(
+    relation=raw_event_relation,
+    event_name_column="event",
+    event_date_column="ts",
+    event_source_column="client",
+    end_date="2021-11-25",
+    n_days=15
+) }}
+```
+This will return a view where each row represents an event with a spike or drop in data on any day in the past 15 days.
+
+This can also be set up as an automatic test to be run each day against the raw data to make sure you catch any anomaly as soon as possible.
+
+
+```
+// Example.yml
+
+models: 
+  - name: NAME_OF_RAW_TABLE
+    tests:
+      - avo_audit.avo_audit_detect_event_count_anomaly:
+          event_name_column: <NAME_OF_EVENT_NAME_COLUMN>
+          event_date_column: <NAME_OF_DATE_COLUMN>
+          event_source_column: <NAME_OF_SOURCE_COLUMN> // ios / android / web 
+```
+This test will by default check the past 15 days from yesterday, and it will fail if any rows are returned which indicates an anomaly in event volume data for any event in your raw data.
+
+
+
+## Helper macro
+
+
+## join_schema_to_table
+This macro is a helper macro for those who do not have all raw events in a single table, but instead in multiple tables in one dataset.
+It is intended to extract the key columns needed and merge all the tables into 1.
+This is something we use to be able to use `audit_event_volume`
+```
+// schema/bigquery dataset
+{{
+    join_schema_into_table(
+        schema="avo_analytics_playground",
+        event_name_column="event", 
+        event_version_column="version", event_date_column="sent_at", 
+        event_source_column="client"
+    )
+}}
+```
+> This macro is a work in progress and is intended to help joining together tables of single events into one table to automatically include all events.
+test_avo_audit_detect_event_count_anomaly can also instead be applied as a test to all event tables that you want to monitor instead.
+# Coming soon
 ### Issue types on the roadmap (not prioritized list):
 * Event missing on some platforms
 * Property missing on some platforms
@@ -31,69 +95,7 @@ This allows you to find discrepancies between events and properties that should 
 ## How do I get the most out of this package? 
 We recommend using the [audit](#audit) macro. That way you will generate a SQL table listing the issues found in your project.
 
-## Installing the package
-Include the following in your `packages.yml` file in your dbt project:
 
-```
-packages:
-    - package: avo/avo_audit
-      version: ["0.1.0]
-```
-
-Run `dbt deps` in the root of your dbt project to install the package.
-
-
-# Macros
-
-### audit_event_volume
-This macro is intended to compare a recent time period by comparing the volume for each day in the time period, to detect significant drops or rises in event volumes.
-
-To execute, run the following commands in your dbt dev environment:"
-```
-{% set raw_event_relation=adapter.get_relation(
-      database=target.database,
-      schema="raw_event_schema",
-      identifier="raw_event_table"
-) -%}
-
-{{ avo_audit.audit_event_volume(
-    relation=raw_event_relation,
-    end_date="2021-10-25",
-    days_back=10,
-    days_lag=5,
-    event_name_column="event",
-    event_date_column="ts",
-    event_source_column="client"
-) }}
-```
-
-
-
-
-
-
-## join_schema_to_table
-This macro is a helper macro for those who do not have all raw events in a single table, but instead in multiple tables in one dataset.
-It is intended to extract the key columns needed and merge all the tables into 1.
-This is something we use to be able to use `audit_event_volume`
-```
-// schema/bigquery dataset
-{{
-    join_schema_into_table(
-        schema="avo_analytics_playground",
-        event_name_column="event", 
-        event_version_column="version", event_date_column="sent_at", 
-        event_source_column="client"
-    )
-}}
-```
-
-### Disclaimer
-> This project is still work in progress. These macros have not been fully implemented yet, however some of the work has been started and we will be doing our best to get this up and running as soon as possible. Reach out if you want to contribute to the project or join our alpha group to be one of the first to try out what we build and provide feedback!"
-
-
-
-# Macros coming soon.
 ## audit
 
 Audit runs on your raw events table and generates a table of issue types like the ones listed in [Issue Types](#Issue-types).

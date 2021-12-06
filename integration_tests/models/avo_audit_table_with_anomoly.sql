@@ -1,0 +1,1 @@
+select * from {{ ref('avo_audit_significant_drop') }}
