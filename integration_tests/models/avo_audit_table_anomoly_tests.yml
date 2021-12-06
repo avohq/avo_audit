@@ -1,9 +1,9 @@
 version: 2
 
 models: 
-  - name: avo_audit_table_with_anomoly
+  - name: avo_audit_table_with_anomaly
     tests:
-      - avo_audit.detect_event_anomoly:
+      - avo_audit.detect_event_anomaly:
           event_name_column: event
           event_date_column: sent_at
           event_source_column: client
@@ -12,9 +12,9 @@ models:
                 severity: error
                 error_if: "< 7"
                 warn_if: "> 7"
-  - name: avo_audit_table_with_no_anomoly
+  - name: avo_audit_table_with_no_anomaly
     tests:
-      - avo_audit.detect_event_anomoly:
+      - avo_audit.detect_event_anomaly:
           event_name_column: event
           event_date_column: sent_at
           event_source_column: client
