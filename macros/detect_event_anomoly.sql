@@ -8,9 +8,7 @@
 #
 # 
 
-{% macro test_detect_event_anomaly(model, event_name_column, event_date_column, event_source_column, end_date=avo_audit.date_yesterday(),  n_days=15) %}
-
-{% set threshold = 2.5 %}
+{% macro test_detect_event_anomaly(model, event_name_column, event_date_column, event_source_column, end_date=avo_audit.date_yesterday(),  n_days=15, threshold=2.5) %}
 
 {% set dt = "cast('" +  end_date +"' as date)" %}
 
