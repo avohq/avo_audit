@@ -16,7 +16,7 @@ Run `dbt deps` in the root of your dbt project to install the package.
 
 # Macros
 
-### test_avo_audit_detect_event_count_anomoly
+### test_avo_audit_detect_event_count_anomaly
 This macro is intended to compare a recent time period by comparing the volume for each day in the time period, to detect significant drops or rises in event volumes.
 
 To execute, run the following commands in your dbt dev environment:"
