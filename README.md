@@ -27,7 +27,7 @@ To execute, run the following commands in your dbt dev environment:"
       identifier="raw_event_table"
 ) -%}
 
-{{ avo_audit.test_avo_audit_detect_event_count_anomoly(
+{{ avo_audit.test_avo_audit_detect_event_count_anomaly(
     relation=raw_event_relation,
     event_name_column="event",
     event_date_column="ts",
