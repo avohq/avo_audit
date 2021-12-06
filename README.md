@@ -75,7 +75,7 @@ This is something we use to be able to use `audit_event_volume`
 }}
 ```
 > This macro is a work in progress and is intended to help joining together tables of single events into one table to automatically include all events.
-test_avo_audit_detect_event_count_anomoly can also instead be applied as a test on all event tables that you want to monitor instead.
+test_avo_audit_detect_event_count_anomaly can also instead be applied as a test to all event tables that you want to monitor instead.
 # Coming soon
 ### Issue types on the roadmap (not prioritized list):
 * Event missing on some platforms
