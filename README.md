@@ -38,7 +38,7 @@ To execute, run the following commands in your dbt dev environment:"
 ```
 This will return a view where each row represents a event with a spike or drop in data on any day in the past 15 days.
 
-This can also be set up as an automatic test to be run each day against the raw data to make sure you catch any anomoly as soon as possible.
+This can also be set up as an automatic test to be run each day against the raw data to make sure you catch any anomaly as soon as possible.
 
 
 ```
