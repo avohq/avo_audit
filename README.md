@@ -55,14 +55,12 @@ models:
 This test will by default check the past 15 days from yesterday, and it will fail if any rows are returned which indicates an anomaly in event volume data for any event in your raw data.
 
 
-
 ## Helper macro
-
 
 ## join_schema_to_table
 This macro is a helper macro for those who do not have all raw events in a single table, but instead in multiple tables in one dataset.
-It is intended to extract the key columns needed and merge all the tables into 1.
-This is something we use to be able to use `audit_event_volume`
+It is intended to extract the key columns needed and merge all the tables into one.
+This is something we use to be able to use `test_avo_audit_detect_event_count_anomaly`
 ```
 // schema/bigquery dataset
 {{
@@ -75,7 +73,7 @@ This is something we use to be able to use `audit_event_volume`
 }}
 ```
 > This macro is a work in progress and is intended to help joining together tables of single events into one table to automatically include all events.
-test_avo_audit_detect_event_count_anomaly can also instead be applied as a test to all event tables that you want to monitor instead.
+
 # Coming soon
 ### Issue types on the roadmap (not prioritized list):
 * Event missing on some platforms
