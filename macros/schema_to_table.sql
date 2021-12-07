@@ -30,7 +30,7 @@
 
 {% set event_relations = dbt_utils.get_relations_by_pattern(raw_event_schema, '%') %}
 
-{%- set relations = filter_event_tables(event_relations, event_name_column, event_version_column, event_date_column, event_source_column) -%}
+{%- set relations = avo_audit.filter_event_tables(event_relations, event_name_column, event_version_column, event_date_column, event_source_column) -%}
 
 
 {% for event_relation in relations %}
