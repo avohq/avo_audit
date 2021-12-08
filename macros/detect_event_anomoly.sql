@@ -8,7 +8,7 @@
 #
 # 
 
-{% macro test_detect_event_anomaly(model, event_name_column, event_date_column, event_source_column, end_date=avo_audit.date_yesterday(),  n_days=15, threshold=2.5) %}
+{% macro test_detect_event_anomaly(model, event_name_column, event_date_column, event_source_column, end_date=avo_audit.date_yesterday(),  n_days=15, threshold=2.5, minimum_avg_event_volume=0) %}
 
 {% set dt = "cast('" +  end_date +"' as date)" %}
 
@@ -109,9 +109,9 @@ events_dates_combo as (
 ), 
 
 daily_percentage as (
-  select event_name, source, day, percentage 
+  select event_name, source, day, event_count, percentage 
   from union_query 
-  GROUP BY event_name, source, day, percentage
+  GROUP BY event_name, source, day, event_count, percentage
 ), avarage as (  
   -- Get the Avarage and standard deviation of percentages over the time period for all event_name source combinations.
   -- This is to be able to check each percentage whether its out of its normal bounds.
@@ -120,7 +120,8 @@ daily_percentage as (
     event_name,
     source,
     AVG(percentage) as avg_percentage,
-    STDDEV(percentage) as std_percentage
+    STDDEV(percentage) as std_percentage,
+    AVG(event_count) as avg_event_count
     from daily_percentage
   group by
     event_name,
@@ -146,9 +147,14 @@ daily_percentage as (
     MAX(t.percentage) as percentage,
     MAX(m.avg_percentage) as avg_percentage,
     MAX(m.std_percentage) as std_percentage,
-    case when MAX(t.percentage) > MAX(m.avg_percentage) + MAX(m.std_percentage) * {{threshold}} then 1
-    when MAX(t.percentage) < MAX(m.avg_percentage) - MAX(m.std_percentage) * {{threshold}} then -1
-    else 0
+    case 
+      when MAX(m.avg_event_count) > {{minimum_avg_event_volume}} then -- anomaly detection does not work for very low volume data.
+        case
+          when MAX(t.percentage) > MAX(m.avg_percentage) + MAX(m.std_percentage) * {{threshold}} then 1
+          when MAX(t.percentage) < MAX(m.avg_percentage) - MAX(m.std_percentage) * {{threshold}} then -1
+          else 0
+        end
+      else 0
     end as signal
   from union_query t
   left join avarage m
