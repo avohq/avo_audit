@@ -15,7 +15,7 @@ defaults:
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 
 # will cancel previous workflows triggered by the same event and for the same ref for PRs or same SHA otherwise
