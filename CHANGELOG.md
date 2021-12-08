@@ -2,7 +2,9 @@
 Features and bug fixes that have been applied but not released yet.
 
 
-
+# avo-audit v1.0.1
+- mininum_avg_event_volume parameter
+  Allows the user to set the mininum avarage for the algorithm to try to detect anomalies, as it can be extremely hard to detect with very low volume events.
 
 # avo-audit v1.0.0
 
