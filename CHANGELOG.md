@@ -2,9 +2,12 @@
 Features and bug fixes that have been applied but not released yet.
 
 
-
-
 # avo-audit v1.0.0
+
+## Fixes and Polish
+
+- `Schema_to_table` works against snowflake
+- `Schema_to_table` only queries tables instead of all relations in a schema
 
 ## Features
 
